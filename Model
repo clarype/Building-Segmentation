@@ -1,0 +1,35 @@
+Finn <- function(dsm,naip,poly_area){      
+
+  #------------Remove Features to make bare surface------------
+  para<-summary(dsm)                             # finds 3rd Qu. of the data which is used to determine what features are above the bare earth
+  dsm_min_less <- ((dsm) < round(para[4]))              # removes those features
+  dsm_min_less[is.na(dsm_min_less)] <- TRUE          # changes the data from logic to number
+  dsm_min_holes <- mask((dsm), dsm_min_less,inverse=TRUE,  maskvalue=1)   #repopulates the raster with bare earth values
+  #--------------Fills Hole In Bare Surface--------------
+  fill.na <- function(x, i=5) {               #fill focal fucntion                    
+    if( is.na(x)[i] ) {
+      return( (mean(x, na.rm=TRUE)) )
+    } else {
+      return( (x[i]) )}} 
+  f3 <- matrix(1,3,3)       #fileter kernalsd
+  dem <- focal(dsm_min_holes, w = f3, fun = fill.na, pad = TRUE, na.rm = FALSE ) 
+  while (summary(dem)[6]>0){
+    dem <- focal(dem, w = f3, fun = fill.na, pad = TRUE, na.rm = FALSE ) }                      # till they are filled
+  #--------------------------------nDSM--------------------------
+  nDSM<- dsm-dem                     # normalizes the the DSM so all features have the same starting z value
+  #-------------------------------- Masking----------------------------
+  fuzz<-summary(nDSM)
+  features <- (nDSM > (round(fuzz[5]/6)))      # selects features above and below a certain z value                          
+  nDSM_features <- mask(nDSM, features,  inverse=FALSE, maskvalue=0, updatevalue=NA, updateNA=FALSE) # 
+  naip_features <-mask(naip, features,  inverse=FALSE, maskvalue=0, updatevalue=NA, updateNA=FALSE)
+  strutures <- (naip_features < ((summary(naip_features)[4]) +  (summary(NAIP)[4]))/2  )
+  #---------------------------------------------------------------------------
+  pol <- rasterToPolygons(strutures, fun=function(x){x==1}, dissolve=TRUE)  # takes logic ==1 and turn into polygons
+  feet <- disaggregate(pol)      # makes pol into many polygons
+  #-----------------------------------------------------------------------------
+  feet$AREA <-area(feet)                # creates and populates a column for the size fo each polygon
+  footprints <- feet[feet$AREA > (poly_area),]    # selects polygons based on size
+  bld_pts <- coordinates(footprints)              # get coordinates for polygons
+  bld_pts <- SpatialPointsDataFrame(coords=bld_pts, data=footprints@data,    # calucates the centoid of the polygons
+                                    proj4string=CRS("+proj=utm +zone=10 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0 "))
+}
