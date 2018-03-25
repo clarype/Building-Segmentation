@@ -21,9 +21,14 @@
         div.col-8 div {
             height: 100px;
         }
-        .bg-success {
-            background-color: azure;
+        .col-sm-3{
+            background-color: #343a41;
+            max-width: 15%;
         }
+        .navbar-dark .navbar-brand{
+            color: #1477ff
+        }
+
 
     </style>
 
@@ -44,7 +49,7 @@
     </nav>
 
     <div class="row">
-        <nav class="col-sm-3 col-4" id="myScrollspy">
+        <nav class="col-sm-3" id="myScrollspy">
             <ul class="nav nav-pills flex-column">
                 <br>
                 <br>
@@ -75,7 +80,7 @@
 
         </nav>
 
-        <div class="col-sm-8">
+        <div class="col-sm-9">
 
               <div id = "section1" >
 
@@ -101,13 +106,13 @@
                        In this case the LIDAR data is used to create a DSM (digital surface model) which is a representation of the earth surface and can be thought of as an elevation image were each pixel represent a height. DSM show the tops of structures and tree canopies along with the bare earth were visible. The structure tops are what we are interested in and what we want to segment. To do this, we need to create a DEM (digital elevation model) from the DSM. A DEM is a lot like the DSM in that it displays elevation, however DEMs differ in that structures and vegetation are not represented. In a sense DEMs only show the bare earth. With a DEM and DSM of the same area we can normalize the terrain by subtracting the DSM from the DEM. In essence, this normalization of the DSM removes hill features as seen below.
                     </p>
 
-                     <img src="Images/DSMDEM.png">
+                     <img class="img-fluid" src="Images/DSMDEM.png">
 
                     <p>
                       Once we have normalized the DSM we can select features above a defined elevation. The selection will consist of tall vegetation and structures. Now that we have the vegetation and structure data, we still need to remove the vegetation from our selected features. This is where the NAIP imagery comes into play. In the NAIP imagery there is a nir (near infrared ) band which can be thought of as another color we can’t see. Anyway, healthy plant life is very bright in this “color” and it is so much brighter that it makes most other buildings look dark, as seen in the image below. The red in the image below is this nir band and we can see that all the plant life is red. So the fact that most building tops and tree canopies have different reflectance values means we can select a threshold that will segment structures from trees.
                     </p>
 
-                    <img src = "Images/Capture.png">
+                    <img class="img-fluid" src = "Images/Capture.png">
 
                     <p>
                         This is all well and good, but now we need to tie R into our process.
@@ -174,9 +179,9 @@
                       plot(NAIP,main='NAIP')
                   </pre>
 
-                  <img src="Images/output_16_0.png">
+                  <img class="img-fluid" src="Images/output_16_0.png">
 
-                  <img src="Images/output_16_1.png">
+                  <img class="img-fluid" src="Images/output_16_1.png">
 
                   <p>
                       Now we need to create a DEM from the DSM, and this is done by selecting all values below the third quartile of the image. By doing this we create a grid of ones and zeros for regions above and below the third quartile. We need to populate this grid of ones and zeros with the elevation values for the areas denoted with a one, and we use a masking function to do this. The output raster has holes from where the zero values were and we will fill them in the next step.
@@ -190,7 +195,7 @@
                       plot(dsm_min_holes, main='DSM<15')
                   </pre>
 
-                  <img src="Images/output_18_0.png">
+                  <img class="img-fluid" src="Images/output_18_0.png">
 
                   <p>
                       To create a DEM from this data we need to fill the NA values (the holes) with numerical values. The function and loop below does this by taking the mean of a group of pixels and replaces the center pixel of the group with the mean value. This group of pixels or kernel moves around the image until all NA values are gone. Note the gradient of the model surface where its high in the upper left and low in the bottom right.
@@ -212,7 +217,7 @@
                       plot(dem, main = 'the DEM')
                   </pre>
 
-                  <img src="Images/output_20_0.png">
+                  <img class="img-fluid" src="Images/output_20_0.png">
 
                   <p>
                       Great! As you can see we filled all the holes and maintained the general trend of the ground’s slope. We can still see topographic relief from the streets which is good because the DEM needs to mimic the ground of the DSM as close as possible. Now that we have the DEM we can subtract the DSM from it.
@@ -224,7 +229,7 @@
                       plot(nDSM, main='nDSM')
                   </pre>
 
-                  <img src="Images/output_22_0.png">
+                  <img class="img-fluid" src="Images/output_22_0.png">
 
                   <p>
                       Remember the gradient in the original DSM, its gone now, the ground across the raster is roughly the same elevation. This means that all features have about the same starting elevation point. Now we can select the features above the bare earth that represent our buildings and trees without the effects of a sloping terrain. The image below shows all of our buildings and trees, and all the values are ones and zeros again.
@@ -236,7 +241,7 @@
                       plot(features, main = 'Buildings and Trees from nDSM')
                   </pre>
 
-                  <img src="Images/output_24_0.png">
+                  <img class="img-fluid" src="Images/output_24_0.png">
 
                   <p>
                       Next, we will replace all the zeros with corresponding NAIP imagery values using a mask. The code below masks the nDSM selected features and applies the NAIP imagery values to the features. We can see in the figure that all of the buildings have different values from the green tree fragments.
@@ -248,7 +253,7 @@
                       plot(naip_features, main = 'NAIP Values Painted On nDSM Features')
                   </pre>
 
-                  <img src="Images/output_26_0.png">
+                  <img class="img-fluid" src="Images/output_26_0.png">
 
                   <p>
                       By selecting values that represent rooftops we finally segment the building from the nDSM.
@@ -260,7 +265,7 @@
                       plot(strutures, main='Buildings!')
                   </pre>
 
-                  <img src="Images/output_28_1.png">
+                  <img class="img-fluid" src="Images/output_28_1.png">
 
               </div>
 
@@ -280,7 +285,7 @@
                       plot(pol, main='Building Polygon, just one')
                   </pre>
 
-                  <img src="Images/output_31_0.png">
+                  <img class="img-fluid" src="Images/output_31_0.png">
 
                   <p>
                       In the following code we dis-aggregate the single polygon above into many polygons by their conductivity. Then we need to add an area attribute to each polygon so we can filter the polygons by their size, removing tree remnants and noise. Unfortunately this causes us to inadvertently remove the smallest of the structures like tool sheds.
@@ -294,7 +299,7 @@
                       plot(footprints, main='Building Polygons')
                   </pre>
 
-                  <img src="Images/output_33_0.png">
+                  <img class="img-fluid" src="Images/output_33_0.png">
 
                   <p>
                       It's now time to place centroids at the center of each building polygon. This is done by taking the coordinates for each of the polygon's nodes and calculating the center point. We then input the coordinates into a spatial points data frame. The plot below shows our DSM as the background, the polygon centroid are symbolized by x and the ground truth building locations are the circles. We can see most of the generated points fall within the ground truth locations!
@@ -309,7 +314,7 @@
                       points(stat_points, cex= 3)
                   </pre>
 
-                  <img src="Images/output_35_0.png">
+                  <img class="img-fluid" src="Images/output_35_0.png">
 
               </div>
 
@@ -375,7 +380,7 @@
                       plot(stat_points , add=TRUE, pch = 1, cex=3)
                   </pre>
 
-                  <img src="Images/output_40_1.png">
+                  <img class="img-fluid" src="Images/output_40_1.png">
 
                   <p>
                       Another source of error is due to the pixel size and structure's distances from each other.
@@ -393,7 +398,7 @@
                       plot(stat_points , add=TRUE, pch = 1, cex=3)
                   </pre>
 
-                  <img src="Images/output_42_3.png">
+                  <img class="img-fluid" src="Images/output_42_3.png">
 
                   <p>
                       As observed in the breakdown the model has high accuracy for the study area. However, the model has yet to be used in regions with high variations in topography, and since the model needs the highest bare earth region in the image to be lower than the lowest rooftop a dynamic clipping grid is needed for large raster processing. The model has the ability to find structures larger than 24 pixels (24 square meters), and this is a function of the raster’s pixel size. Thus, if the inputs raster’s have a resolution of 0.5 meters the model would be able to find structures larger than 7.5 square meters.  However, there is much more work to be done.
