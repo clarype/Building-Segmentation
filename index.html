@@ -28,7 +28,10 @@
         .navbar-dark .navbar-brand{
             color: #1477ff
         }
-
+        .jumbotron{
+            padding-top: 35px;
+            padding-bottom: 5px;
+        }
 
     </style>
 
@@ -121,12 +124,10 @@
 
               </div>
 
-              <div id="section3" >
-
+              <div id="section3">
                    <h2>Libraries</h2>
-
-
-                  <pre>
+                 <div class="jumbotron">
+                     <pre>
                       library(sp)
                       library(rgdal)
                       library(dplyr)
@@ -134,8 +135,8 @@
                       library(rgeos)
                       library(wvtool)
                       library(graphics)
-                  </pre>
-
+                     </pre>
+                 </div>
 
               </div>
 
@@ -149,35 +150,41 @@
                      The code below represents how we import our imagery and shapefiles. The imagery includes our DSM and NAIP rasters, and a shapefile that is the ground truth locations of structures.
                   </p>
 
-                  <pre>
-                      #these are the different test sites. NOTE open each test site one at a time making sure to use '#'on sites that are not used.
-                      #------------------------------------------------------------
-                      #stat_points <- readOGR(dsn="data/ShapeFiles", layer="grd_pts_lar") #shapefile
-                      #dsm_min <- raster('data/Rasters/DSM_lar.tif')
-                      #NAIP <- raster('data/Rasters/NAIP_lar.tif', band = 4)
-                      #------------------------------------------------------------
-                      #stat_points <- readOGR(dsn="data/ShapeFiles", layer="grd_pts") #shapefile
-                      #dsm_min <- raster('data/Rasters/DSM_door.tif')
-                      #NAIP <- raster('data/Rasters/NAIP_door.tif', band = 4)
-                      #------------------------------------------------------------
-                      #stat_points <- readOGR(dsn="data/ShapeFiles", layer="grd_pts_job") #shapefile
-                      #dsm_min <- raster('data/Rasters/DSM_job.tif')
-                      #NAIP <- raster('data/Rasters/NAIP_job.tif', band = 4)
-                      #------------------------------------------------------------
-                      stat_points <- readOGR(dsn="data/ShapeFiles", layer="stat_points") #shapefile
-                      dsm_min <- raster('data/Rasters/dsm_min.tif')
-                      NAIP <- raster('data/Rasters/naip.tif', band = 4)
-                      #------------------------------------------------------------
-                  </pre>
-
+                   <div class="jumbotron">
+                         <pre>
+                             #these are the different test sites. NOTE open each test site one at a time making sure to use '#'on sites that are not used.
+                             #------------------------------------------------------------
+                             #stat_points <- readOGR(dsn="data/ShapeFiles", layer="grd_pts_lar") #shapefile
+                             #dsm_min <- raster('data/Rasters/DSM_lar.tif')
+                             #NAIP <- raster('data/Rasters/NAIP_lar.tif', band = 4)
+                             #------------------------------------------------------------
+                             #stat_points <- readOGR(dsn="data/ShapeFiles", layer="grd_pts") #shapefile
+                             #dsm_min <- raster('data/Rasters/DSM_door.tif')
+                             #NAIP <- raster('data/Rasters/NAIP_door.tif', band = 4)
+                             #------------------------------------------------------------
+                             #stat_points <- readOGR(dsn="data/ShapeFiles", layer="grd_pts_job") #shapefile
+                             #dsm_min <- raster('data/Rasters/DSM_job.tif')
+                             #NAIP <- raster('data/Rasters/NAIP_job.tif', band = 4)
+                             #------------------------------------------------------------
+                             stat_points <- readOGR(dsn="data/ShapeFiles", layer="stat_points") #shapefile
+                             dsm_min <- raster('data/Rasters/dsm_min.tif')
+                             NAIP <- raster('data/Rasters/naip.tif', band = 4)
+                             #------------------------------------------------------------
+                         </pre>
+                   </div>
                   <p>
                       Below is our DSM and NAIP rasters. As you can see the buildings in the DSM are pretty easy to see, but there is a bit of noise and some trees we need to remove. In the NAIP imagery structures are a little harder to see, but its the green areas, the vegetation, that is important to us. The values in the DSM represent elevation and in the NAIP imagery the values are nir (near infrared) brightness values. Remember, high nir values show vegetation well.
                   </p>
 
-                  <pre>
+
+                  <div class="jumbotron">
+                      <pre>
                       plot(dsm_min, main='DSM')
                       plot(NAIP,main='NAIP')
-                  </pre>
+                      </pre>
+                  </div>
+
+
 
                   <img class="img-fluid" src="Images/output_16_0.png">
 
@@ -187,13 +194,15 @@
                       Now we need to create a DEM from the DSM, and this is done by selecting all values below the third quartile of the image. By doing this we create a grid of ones and zeros for regions above and below the third quartile. We need to populate this grid of ones and zeros with the elevation values for the areas denoted with a one, and we use a masking function to do this. The output raster has holes from where the zero values were and we will fill them in the next step.
                   </p>
 
-                  <pre>
+                 <div class="jumbotron">
+                      <pre>
                       para<-summary(dsm_min)
                       dsm_min_less <- (dsm_min < round(para[4]))
                       dsm_min_holes <- mask(dsm_min, dsm_min_less,inverse=TRUE,  maskvalue=1)
 
                       plot(dsm_min_holes, main='DSM<15')
-                  </pre>
+                      </pre>
+                 </div>
 
                   <img class="img-fluid" src="Images/output_18_0.png">
 
@@ -201,7 +210,8 @@
                       To create a DEM from this data we need to fill the NA values (the holes) with numerical values. The function and loop below does this by taking the mean of a group of pixels and replaces the center pixel of the group with the mean value. This group of pixels or kernel moves around the image until all NA values are gone. Note the gradient of the model surface where its high in the upper left and low in the bottom right.
                   </p>
 
-                  <pre>
+                  <div class="jumbotron">
+                      <pre>
                       fill.na <- function(x, i=5) {
                       if( is.na(x)[i] ) {
                       return((mean(x, na.rm=TRUE)) )
@@ -215,7 +225,8 @@
                       dem <- focal(dem, w = f3, fun = fill.na, pad = TRUE, na.rm = FALSE )
                       }
                       plot(dem, main = 'the DEM')
-                  </pre>
+                      </pre>
+                  </div>
 
                   <img class="img-fluid" src="Images/output_20_0.png">
 
@@ -223,11 +234,13 @@
                       Great! As you can see we filled all the holes and maintained the general trend of the ground’s slope. We can still see topographic relief from the streets which is good because the DEM needs to mimic the ground of the DSM as close as possible. Now that we have the DEM we can subtract the DSM from it.
                   </p>
 
-                  <pre>
+                  <div class="jumbotron">
+                      <pre>
                       nDSM <- dsm_min - dem
 
                       plot(nDSM, main='nDSM')
-                  </pre>
+                      </pre>
+                  </div>
 
                   <img class="img-fluid" src="Images/output_22_0.png">
 
@@ -235,11 +248,13 @@
                       Remember the gradient in the original DSM, its gone now, the ground across the raster is roughly the same elevation. This means that all features have about the same starting elevation point. Now we can select the features above the bare earth that represent our buildings and trees without the effects of a sloping terrain. The image below shows all of our buildings and trees, and all the values are ones and zeros again.
                   </p>
 
-                  <pre>
+                  <div class="jumbotron">
+                      <pre>
                       features <- (nDSM > (round(summary(nDSM)[5]/6)) )
 
                       plot(features, main = 'Buildings and Trees from nDSM')
-                  </pre>
+                      </pre>
+                  </div>
 
                   <img class="img-fluid" src="Images/output_24_0.png">
 
@@ -247,11 +262,13 @@
                       Next, we will replace all the zeros with corresponding NAIP imagery values using a mask. The code below masks the nDSM selected features and applies the NAIP imagery values to the features. We can see in the figure that all of the buildings have different values from the green tree fragments.
                   </p>
 
-                  <pre>
+                  <div class="jumbotron">
+                      <pre>
                       naip_features <-mask(NAIP, features,  inverse=FALSE, maskvalue=0, updatevalue=NA, updateNA=FALSE)
 
                       plot(naip_features, main = 'NAIP Values Painted On nDSM Features')
-                  </pre>
+                      </pre>
+                  </div>
 
                   <img class="img-fluid" src="Images/output_26_0.png">
 
@@ -259,11 +276,13 @@
                       By selecting values that represent rooftops we finally segment the building from the nDSM.
                   </p>
 
-                  <pre>
+                  <div class="jumbotron">
+                      <pre>
                       strutures<-(naip_features<(round((summary(naip_features)[4])+(summary(NAIP)[4]))/2))
 
                       plot(strutures, main='Buildings!')
-                  </pre>
+                      </pre>
+                  </div>
 
                   <img class="img-fluid" src="Images/output_28_1.png">
 
@@ -279,11 +298,14 @@
                       With this information we will make vector data which will include our final product the centroids of the buildings. Now we  will changing a raster into a polygon, just one polygon, with the raster to polygon function.
                   </p>
 
-                  <pre>
+                  <div class="jumbotron">
+                      <pre>
                       pol <- rasterToPolygons(strutures, fun=function(x){x==1}, dissolve=TRUE)
 
                       plot(pol, main='Building Polygon, just one')
-                  </pre>
+                      </pre>
+
+                  </div>
 
                   <img class="img-fluid" src="Images/output_31_0.png">
 
@@ -291,13 +313,15 @@
                       In the following code we dis-aggregate the single polygon above into many polygons by their conductivity. Then we need to add an area attribute to each polygon so we can filter the polygons by their size, removing tree remnants and noise. Unfortunately this causes us to inadvertently remove the smallest of the structures like tool sheds.
                   </p>
 
-                  <pre>
+                 <div class="jumbotron">
+                      <pre>
                       feet <- disaggregate(pol)
                       feet$AREA <-area(feet)
                       footprints <- feet[feet$AREA > (24),]
 
                       plot(footprints, main='Building Polygons')
-                  </pre>
+                      </pre>
+                 </div>
 
                   <img class="img-fluid" src="Images/output_33_0.png">
 
@@ -305,14 +329,16 @@
                       It's now time to place centroids at the center of each building polygon. This is done by taking the coordinates for each of the polygon's nodes and calculating the center point. We then input the coordinates into a spatial points data frame. The plot below shows our DSM as the background, the polygon centroid are symbolized by x and the ground truth building locations are the circles. We can see most of the generated points fall within the ground truth locations!
                   </p>
 
-                  <pre>
+                 <div class="jumbotron">
+                      <pre>
                       bld_pts <- SpatialPointsDataFrame(coords=coordinates(footprints), data=footprints@data,
                       proj4string=CRS("+proj=utm +zone=10 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0 "))
 
                       plot(nDSM, main = 'nDSM, truth Points and Model Generated Points')
                       points(bld_pts,pch=3)
                       points(stat_points, cex= 3)
-                  </pre>
+                      </pre>
+                 </div>
 
                   <img class="img-fluid" src="Images/output_35_0.png">
 
@@ -328,7 +354,8 @@
                       Below is the summation of the steps above. This model has three inputs, the two rasters and a polygon size which removes polygons below that value.
                   </p>
 
-                  <pre>
+                  <div class="jumbotron">
+                      <pre>
                       Finn <- function(dsm,naip,poly_area){
                       #------------Remove Features to make bare surface------------
                       para<-summary(dsm)                             # finds 3rd Qu. of the data which is used to determine what features are above the bare earth
@@ -363,13 +390,15 @@
                       bld_pts <- SpatialPointsDataFrame(coords=bld_pts, data=footprints@data,    # calucates the centoid of the polygons
                       proj4string=CRS("+proj=utm +zone=10 +datum=NAD83 +units=m +no_defs +ellps=GRS80 +towgs84=0,0,0 "))
                       }
-                  </pre>
+                      </pre>
+                  </div>
 
                   <p>
                       This is great, but how will the model fair with a different location? Remember back where we imported the data? Well, there are three more sites we can use as different inputs, and the output centroids never goes below 95% accuracy at these locations. The drop in accuracy occurs for several reasons. The first being, that there are objects other than vegetation that emit or reflect near infrared well, these features can be rooftops and in the figure below this effect can be seen. The feature is a white roofed building that reflects very strongly in the near infrared band (green), and is noted by a circle without an x.
                   </p>
 
-                  <pre>
+                 <div class="jumbotron">
+                      <pre>
                       stat_points <- readOGR(dsn="data/ShapeFiles", layer="grd_pts_lar") #shapefile
                       dsm_min<- raster('data/Rasters/DSM_lar.tif')
                       NAIP<- raster('data/Rasters/NAIP_lar.tif', band = 4)
@@ -378,7 +407,9 @@
                       plot(NAIP)
                       plot(points, add=TRUE, col='blue')
                       plot(stat_points , add=TRUE, pch = 1, cex=3)
-                  </pre>
+                      </pre>
+
+                 </div>
 
                   <img class="img-fluid" src="Images/output_40_1.png">
 
@@ -387,7 +418,8 @@
                       When structures are two or less pixels from each other there is a high likelihood that bleed over may connect the two structures and the model will view them as one.
                   </p>
 
-                  <pre>
+                  <div class="jumbotron">
+                      <pre>
                       stat_points <- readOGR(dsn="data/ShapeFiles", layer="grd_pts_job") #shapefile
                       dsm_min <- raster('data/Rasters/DSM_job.tif')
                       NAIP <- raster('data/Rasters/NAIP_job.tif', band = 4)
@@ -396,7 +428,8 @@
                       plot(dsm_min)
                       plot(points, add=TRUE, col='blue')
                       plot(stat_points , add=TRUE, pch = 1, cex=3)
-                  </pre>
+                      </pre>
+                  </div>
 
                   <img class="img-fluid" src="Images/output_42_3.png">
 
